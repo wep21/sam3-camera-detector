@@ -2,13 +2,13 @@ use anyhow::{Context, Result};
 use argh::FromArgs;
 use std::io::Write;
 use usls::{
-    models::{Sam3Prompt, SAM3},
     Annotator, Config, Task, Viewer,
+    models::{SAM3, Sam3Prompt},
 };
 
 #[derive(FromArgs)]
 /// SAM3 webcam inference (text prompts via `usls`).
-struct Args {
+pub struct Args {
     /// task (sam3-image, sam3-tracker)
     #[argh(option, default = "String::from(\"sam3-image\")")]
     task: String,
@@ -101,15 +101,15 @@ fn prompt_update_loop() -> Result<Option<Vec<Sam3Prompt>>> {
 }
 
 #[cfg(not(target_os = "linux"))]
-fn main() -> Result<()> {
-    anyhow::bail!("`webcam_sam3` currently supports only Linux (V4L2).")
+pub fn run() -> Result<()> {
+    anyhow::bail!("`v4l_sam3` currently supports only Linux (V4L2).")
 }
 
 #[cfg(target_os = "linux")]
-fn main() -> Result<()> {
+pub fn run() -> Result<()> {
     use v4l::io::traits::CaptureStream;
     use v4l::video::Capture;
-    use v4l::{buffer::Type, prelude::*, Device, FourCC};
+    use v4l::{Device, FourCC, buffer::Type, prelude::*};
 
     fn clamp_u8(x: i32) -> u8 {
         x.clamp(0, 255) as u8
@@ -212,14 +212,16 @@ fn main() -> Result<()> {
         )
         .with_polygon_style(usls::PolygonStyle::default().with_thickness(2));
 
-    let mut viewer = Viewer::new("sam3-webcam").with_window_scale(args.window_scale);
+    let mut viewer = Viewer::new("sam3-v4l").with_window_scale(args.window_scale);
 
     let dev = Device::new(args.camera).context("failed to open camera device")?;
     let mut fmt = dev.format().context("failed to read camera format")?;
     fmt.width = args.width;
     fmt.height = args.height;
     fmt.fourcc = FourCC::new(b"YUYV");
-    let fmt = dev.set_format(&fmt).context("failed to set camera format")?;
+    let fmt = dev
+        .set_format(&fmt)
+        .context("failed to set camera format")?;
     tracing::info!(
         "Camera format: {}x{} {:?}",
         fmt.width,

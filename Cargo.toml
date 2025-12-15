@@ -9,10 +9,11 @@ argh = "0.1"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "chrono", "fmt", "ansi"] }
-usls = { path = "../usls", default-features = false, features = ["sam3", "viewer", "github", "image-default-formats"] }
+usls = { git = "https://github.com/jamjamjon/usls.git", rev = "918a70ae6a56ba8f5016b62148c2e7c5538b5a77", default-features = false, features = ["sam3", "viewer", "github", "image-default-formats"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 v4l = "0.14"
+hikvision-mvs-sys = { version = "0.1.1", optional = true }
 
 [features]
 default = ["ort-download-binaries"]
@@ -24,3 +25,6 @@ ort-load-dynamic = ["usls/ort-load-dynamic"]
 # Execution providers
 cuda = ["usls/cuda"]
 tensorrt = ["usls/tensorrt"]
+
+# Camera backends
+hikvision = ["dep:hikvision-mvs-sys"]
