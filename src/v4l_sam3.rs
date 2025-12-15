@@ -252,7 +252,7 @@ pub fn run() -> Result<()> {
         let img = usls::Image::from(rgb8);
 
         frame_idx += 1;
-        let run_infer = args.infer_every > 0 && (frame_idx % args.infer_every as u64 == 0);
+        let run_infer = args.infer_every > 0 && frame_idx.is_multiple_of(args.infer_every as u64);
         let display = if run_infer {
             let batch = vec![img.clone()];
             let ys = model.forward(&batch, &prompts)?;
@@ -280,13 +280,12 @@ pub fn run() -> Result<()> {
                         tracing::info!("Saved: {}", path.display());
                     }
                 }
-                usls::Key::P => match prompt_update_loop()? {
-                    Some(new_prompts) => {
+                usls::Key::P => {
+                    if let Some(new_prompts) = prompt_update_loop()? {
                         prompts = new_prompts;
                         tracing::info!("Updated prompts: {:?}", prompts);
                     }
-                    None => {}
-                },
+                }
                 _ => {}
             }
         }
