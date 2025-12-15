@@ -270,24 +270,19 @@ pub fn run() -> Result<()> {
 
         viewer.imshow(&display)?;
 
-        if let Some(key) = viewer.wait_key(1) {
-            match key {
-                usls::Key::Escape | usls::Key::Q => break,
-                usls::Key::S => {
-                    if let Some(img) = &last_displayed {
-                        let path = save_base.join(format!("{}.jpg", usls::timestamp(None)));
-                        img.save(&path)?;
-                        tracing::info!("Saved: {}", path.display());
-                    }
-                }
-                usls::Key::P => {
-                    if let Some(new_prompts) = prompt_update_loop()? {
-                        prompts = new_prompts;
-                        tracing::info!("Updated prompts: {:?}", prompts);
-                    }
-                }
-                _ => {}
-            }
+        if viewer.is_key_pressed(usls::Key::Escape) || viewer.is_key_pressed(usls::Key::Q) {
+            break;
+        }
+
+        if viewer.is_key_pressed(usls::Key::S) && let Some(img) = &last_displayed {
+            let path = save_base.join(format!("{}.jpg", usls::timestamp(None)));
+            img.save(&path)?;
+            tracing::info!("Saved: {}", path.display());
+        }
+
+        if viewer.is_key_pressed(usls::Key::P) && let Some(new_prompts) = prompt_update_loop()? {
+            prompts = new_prompts;
+            tracing::info!("Updated prompts: {:?}", prompts);
         }
     }
 
